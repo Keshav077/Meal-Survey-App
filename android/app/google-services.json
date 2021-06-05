@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "267121476589",
+    "project_id": "meal-survey-12008",
+    "storage_bucket": "meal-survey-12008.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267121476589:android:13dcb2a1ccc6ac88001de4",
+        "android_client_info": {
+          "package_name": "com.example.meal_survey"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267121476589-3kc5bqi6gestkmpgia7agn8rsqjhtjdo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRI5g-n1LylV4fbt2-LYVb0Iq4aQlV0SI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267121476589-3kc5bqi6gestkmpgia7agn8rsqjhtjdo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
