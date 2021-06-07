@@ -33,6 +33,7 @@ class _MenuButtonState extends State<MenuButton> {
               ? Theme.of(context).primaryColor
               : Theme.of(context).primaryColorLight,
           borderRadius: BorderRadius.circular(30),
+          boxShadow: kElevationToShadow[1],
         ),
         child: Container(
           alignment: Alignment.center,

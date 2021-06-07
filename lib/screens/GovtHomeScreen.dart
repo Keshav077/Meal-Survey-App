@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_survey/screens/AddSchoolScreen.dart';
+import 'package:meal_survey/screens/SchoolMonthlyReport.dart';
 import 'package:meal_survey/screens/StudentHomeScreen.dart';
 
 class GovtHomeScreen extends StatefulWidget {
@@ -45,6 +46,28 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
             )
           : SafeArea(
               child: Scaffold(
+                appBar: AppBar(
+                  backgroundColor: Colors.white,
+                  title: AutoSizeText(
+                    name,
+                    style: TextStyle(fontSize: 30, color: Colors.black),
+                  ),
+                  actions: [
+                    Container(
+                      margin: EdgeInsets.only(bottom: 5),
+                      child: IconButton(
+                        alignment: Alignment.bottomRight,
+                        onPressed: () {
+                          fbAuth.signOut();
+                        },
+                        icon: Icon(
+                          Icons.logout,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 body: status == 'created'
                     ? NotVerified(
                         fbAuth: fbAuth,
@@ -68,27 +91,6 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                           )
                         : ListView(
                             children: [
-                              Padding(
-                                padding: EdgeInsets.fromLTRB(mqs.width * 0.05,
-                                    mqs.width * 0.05, mqs.width * 0.05, 0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    AutoSizeText(
-                                      name,
-                                      style: TextStyle(fontSize: 30),
-                                    ),
-                                    Spacer(),
-                                    IconButton(
-                                      alignment: Alignment.bottomRight,
-                                      onPressed: () {
-                                        fbAuth.signOut();
-                                      },
-                                      icon: Icon(Icons.logout),
-                                    ),
-                                  ],
-                                ),
-                              ),
                               InkWell(
                                 onTap: () {
                                   Navigator.of(context).push(
@@ -98,20 +100,65 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                   );
                                 },
                                 child: Container(
-                                  margin: EdgeInsets.all(20),
+                                  margin: EdgeInsets.all(10),
                                   height: mqs.height * 0.15,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Theme.of(context).primaryColorLight,
+                                    boxShadow: kElevationToShadow[1],
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Theme.of(context).primaryColorDark,
                                   ),
-                                  child: AutoSizeText(
-                                    "Add School",
-                                    style: TextStyle(
-                                      fontSize: 25,
-                                      color: Theme.of(context).primaryColorDark,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  // gradient: LinearGradient(
+                                  //     colors: [
+                                  //       Colors.purple.shade800,
+                                  //       Theme.of(context).primaryColorDark
+                                  //     ],
+                                  //     begin: Alignment.topLeft,
+                                  //     end: Alignment.bottomRight)),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          Container(
+                                            height: 57,
+                                            width: 50,
+                                            child: Icon(
+                                              Icons.school_sharp,
+                                              color: Colors.white,
+                                              size: 40,
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 0,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    width: 2,
+                                                    color: Theme.of(context)
+                                                        .primaryColorDark),
+                                                shape: BoxShape.circle,
+                                                color: Colors.white,
+                                              ),
+                                              child: Icon(
+                                                Icons.add,
+                                                size: 20,
+                                                color: Theme.of(context)
+                                                    .primaryColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      AutoSizeText(
+                                        "Add School",
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -146,7 +193,8 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                         todaysData.keys.forEach((key) {
                                           bool recievedAllItems = true;
                                           todaysData[key].forEach((k, v) {
-                                            if (!v) recievedAllItems = false;
+                                            if (k != 'imageUrl' && !v)
+                                              recievedAllItems = false;
                                           });
                                           if (recievedAllItems)
                                             recievedAllItemsCount += 1;
@@ -158,114 +206,132 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                             result[e]['studentCount'];
                                       }
                                       // print(percent);
-                                      return Container(
-                                        margin: EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          color: Colors.white,
-                                          boxShadow: kElevationToShadow[1],
-                                        ),
-                                        padding: EdgeInsets.only(top: 15),
-                                        child: Column(
-                                          children: [
-                                            AutoSizeText(
-                                              e,
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                      return InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (ctx) {
+                                                return SchoolMonthlyReport(
+                                                  reportedData: result[e],
+                                                  schoolName: e.toString(),
+                                                  month: month,
+                                                );
+                                              },
                                             ),
-                                            SizedBox(
-                                              height: 15,
-                                            ),
-                                            Stack(
-                                              children: [
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                    color: Theme.of(context)
-                                                        .primaryColorLight,
-                                                  ),
-                                                  height: mqs.height * 0.06,
-                                                  width: mqs.width - 40,
+                                          );
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.fromLTRB(
+                                              10, 0, 10, 10),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            color: Colors.white,
+                                            boxShadow: kElevationToShadow[1],
+                                          ),
+                                          padding: EdgeInsets.only(top: 15),
+                                          child: Column(
+                                            children: [
+                                              AutoSizeText(
+                                                e,
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
-                                                Container(
-                                                  alignment: Alignment.center,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
-                                                    color: Theme.of(context)
-                                                        .primaryColorDark,
+                                              ),
+                                              SizedBox(
+                                                height: 15,
+                                              ),
+                                              Stack(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      color: Theme.of(context)
+                                                          .primaryColorLight,
+                                                    ),
+                                                    height: mqs.height * 0.06,
+                                                    width: mqs.width - 40,
                                                   ),
-                                                  height: mqs.height * 0.06,
-                                                  width: (mqs.width - 40) *
-                                                      percent,
-                                                  child: AutoSizeText(
-                                                    todaysData == null
-                                                        ? ""
-                                                        : todaysData.length
-                                                            .toString(),
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold,
+                                                  Container(
+                                                    alignment: Alignment.center,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      color: Theme.of(context)
+                                                          .primaryColorDark,
+                                                    ),
+                                                    height: mqs.height * 0.06,
+                                                    width: (mqs.width - 40) *
+                                                        percent,
+                                                    child: AutoSizeText(
+                                                      todaysData == null
+                                                          ? ""
+                                                          : todaysData.length
+                                                              .toString(),
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceAround,
-                                              children: [
-                                                Chip(
-                                                  backgroundColor: Colors.green,
-                                                  label: AutoSizeText(
-                                                    "Recieved: $recievedAllItemsCount",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceAround,
+                                                children: [
+                                                  Chip(
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                    label: AutoSizeText(
+                                                      "Recieved: $recievedAllItemsCount",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
                                                   ),
-                                                ),
-                                                Chip(
-                                                  backgroundColor: Colors.red,
-                                                  label: AutoSizeText(
-                                                    "Not recieved: $notRecievedAllItemsCount",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                                  Chip(
+                                                    backgroundColor: Colors.red,
+                                                    label: AutoSizeText(
+                                                      "Not recieved: $notRecievedAllItemsCount",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
                                                   ),
-                                                ),
-                                                Chip(
-                                                  backgroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColor,
-                                                  label: AutoSizeText(
-                                                    "Students: ${result[e]['studentCount']}",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                                  Chip(
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .primaryColor,
+                                                    label: AutoSizeText(
+                                                      "Students: ${result[e]['studentCount']}",
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                          ],
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       );
                                     }).toList(),

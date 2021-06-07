@@ -35,6 +35,8 @@ dependencies:
   firebase_core: ^1.2.0
   firebase_database: ^7.0.0
   fluttertoast: ^8.0.7
+  firebase_storage: ^8.1.1
+  image_picker: ^0.8.0+1
   
 
 dev_dependencies:

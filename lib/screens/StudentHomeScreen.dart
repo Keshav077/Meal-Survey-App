@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:meal_survey/widgets/MenuButton.dart';
 import 'package:timer_builder/timer_builder.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:flutter/material.dart';
 import 'package:meal_survey/Services/studentService.dart';
@@ -21,6 +25,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   final fbAuth = FirebaseAuth.instance;
   bool _isLoading = false;
   String status = 'created';
+  bool imagePicked = false;
+  String school = '';
+
+  String downloadUrl = '';
+
+  bool uploadingImage = false;
+  List<String> todayMenu = [];
+  DateTime today = DateTime.now();
+  Map<String, bool> selected = {};
 
   @override
   void didChangeDependencies() async {
@@ -31,7 +44,14 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
     final snap =
         await fbDB.reference().child("users/${fbAuth.currentUser!.uid}").once();
     name = snap.value['name'];
+    school = snap.value['school'];
     status = snap.value['status'];
+    today = DateTime.now();
+    todayMenu = StudentServices.weekScheduleList[today.weekday - 1].split(", ");
+
+    for (int i = 0; i < todayMenu.length; i++) {
+      selected[todayMenu[i]] = false;
+    }
     setState(() {
       _isLoading = false;
     });
@@ -40,16 +60,10 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final ref = fbDB.reference();
-    final today = DateTime.now();
+
     final month = DateTimeFormat.format(today, format: "M"),
         date = DateTimeFormat.format(today, format: "d");
     final mqs = MediaQuery.of(context).size;
-    final todayMenu =
-        StudentServices.weekScheduleList[today.weekday - 1].split(", ");
-    Map<String, bool> selected = {};
-    for (int i = 0; i < todayMenu.length; i++) {
-      selected[todayMenu[i]] = false;
-    }
 
     return Container(
       color: Colors.white,
@@ -102,6 +116,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                       width: 100,
                                       height: 100,
                                       decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                              "https://image.shutterstock.com/image-vector/social-member-vector-icon-person-260nw-1139787308.jpg",
+                                            ),
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment(1, -1)),
                                         shape: BoxShape.circle,
                                         color: Theme.of(context).primaryColor,
                                       ),
@@ -193,27 +213,124 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                       },
                                     ),
                                     Padding(
+                                      padding: const EdgeInsets.all(15),
+                                      child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          foregroundColor:
+                                              MaterialStateProperty.resolveWith(
+                                            (states) {
+                                              if (!imagePicked)
+                                                return Colors.black;
+
+                                              return Colors.white;
+                                            },
+                                          ),
+                                          backgroundColor:
+                                              MaterialStateProperty.resolveWith(
+                                            (states) {
+                                              if (!imagePicked)
+                                                return Theme.of(context)
+                                                    .primaryColorLight;
+
+                                              return Theme.of(context)
+                                                  .primaryColorDark;
+                                            },
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          final pickedFile = await ImagePicker()
+                                              .getImage(
+                                                  source: ImageSource.camera,
+                                                  maxWidth: 500);
+                                          setState(() {
+                                            uploadingImage = true;
+                                          });
+                                          if (pickedFile != null) {
+                                            TaskSnapshot snapshot =
+                                                await FirebaseStorage.instance
+                                                    .ref()
+                                                    .child(
+                                                        "$school/$month/$date/${fbAuth.currentUser!.uid}")
+                                                    .putFile(
+                                                        File(pickedFile.path));
+                                            if (snapshot.state ==
+                                                TaskState.success) {
+                                              downloadUrl = await snapshot.ref
+                                                  .getDownloadURL();
+
+                                              setState(() {
+                                                imagePicked = true;
+                                              });
+                                            }
+                                          }
+                                          setState(() {
+                                            uploadingImage = false;
+                                          });
+                                        },
+                                        child: uploadingImage
+                                            ? CircularProgressIndicator()
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(Icons
+                                                      .add_a_photo_rounded),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  AutoSizeText(
+                                                    "Add Photo",
+                                                    style:
+                                                        TextStyle(fontSize: 20),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
+                                    ),
+                                    Padding(
                                       padding: EdgeInsets.all(20),
                                       child: ElevatedButton(
                                         onPressed: () async {
                                           setState(() {
                                             _isLoading = true;
                                           });
-                                          String school;
-                                          final snap = await ref
-                                              .child(
-                                                  "users/${fbAuth.currentUser!.uid}/school")
-                                              .once();
-                                          school = snap.value;
+
                                           await ref
                                               .child(
                                                   "schools/$school/reportedData/$month/$date/${FirebaseAuth.instance.currentUser!.uid}")
                                               .set(selected);
+                                          if (downloadUrl.length != 0) {
+                                            await ref
+                                                .child(
+                                                    "schools/$school/reportedData/$month/$date/${FirebaseAuth.instance.currentUser!.uid}")
+                                                .update(
+                                                    {'imageUrl': downloadUrl});
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    "Successfully submitted"),
+                                              ),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    "Couldn't Upload Image"),
+                                              ),
+                                            );
+                                          }
                                           setState(() {
+                                            selected.keys.forEach((element) {
+                                              selected[element] = false;
+                                            });
+                                            imagePicked = false;
                                             _isLoading = false;
                                           });
                                         },
-                                        child: Text("Submit"),
+                                        child: AutoSizeText("Submit",
+                                            style: TextStyle(fontSize: 20)),
                                       ),
                                     ),
                                   ],

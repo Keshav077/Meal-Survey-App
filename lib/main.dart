@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:meal_survey/screens/AdminScreen.dart';
 import 'package:meal_survey/screens/GovtHomeScreen.dart';
 import 'package:meal_survey/screens/StudentHomeScreen.dart';
-import 'package:meal_survey/screens/signin.dart';
+import 'package:meal_survey/screens/SignInScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,14 +20,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
+          primarySwatch: Colors.blueGrey,
           inputDecorationTheme: InputDecorationTheme(
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(40))),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ButtonStyle(
               minimumSize: MaterialStateProperty.all(
-                Size(double.infinity, 50),
+                Size(double.infinity, 60),
               ),
               shape: MaterialStateProperty.all(
                 RoundedRectangleBorder(
@@ -65,8 +65,6 @@ class MyApp extends StatelessWidget {
               return SignInScreen();
             }
           },
-        )
-        // SignInScreen(),
-        );
+        ));
   }
 }
