@@ -1,11 +1,19 @@
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_survey/screens/AddSchoolScreen.dart';
-import 'package:meal_survey/screens/SchoolMonthlyReport.dart';
-import 'package:meal_survey/screens/StudentHomeScreen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:meal_survey/screens/BillViewer.dart';
+import 'package:meal_survey/screens/IssuesScreen.dart';
+import 'package:meal_survey/screens/MealChart.dart';
+import 'package:meal_survey/widgets/addPhoto.dart';
+import '../screens/AddSchoolScreen.dart';
+import '../screens/SchoolMonthlyReport.dart';
+import '../screens/StudentHomeScreen.dart';
 
 class GovtHomeScreen extends StatefulWidget {
   const GovtHomeScreen({Key? key}) : super(key: key);
@@ -19,6 +27,7 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
   final fbDB = FirebaseDatabase.instance;
   String name = '', status = 'created';
   bool _isLoading = false;
+
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
@@ -38,32 +47,77 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
   Widget build(BuildContext context) {
     final mqs = MediaQuery.of(context).size;
     final ref = fbDB.reference();
-    return Container(
-      color: Colors.white,
-      child: _isLoading
-          ? Center(
+    return _isLoading
+        ? Scaffold(
+            body: Center(
               child: CircularProgressIndicator(),
-            )
-          : SafeArea(
+            ),
+          )
+        : Container(
+            color: Theme.of(context).primaryColor,
+            child: SafeArea(
               child: Scaffold(
+                drawer: Drawer(
+                  child: ListView(
+                    children: [
+                      DrawerHeader(
+                        padding: EdgeInsets.only(left: 20, bottom: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hello",
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                            ),
+                            Text(
+                              name,
+                              style:
+                                  TextStyle(fontSize: 30, color: Colors.white),
+                            )
+                          ],
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.fastfood),
+                        title: Text("Menu"),
+                        onTap: () {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (ctx) => MealChart()));
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.receipt_long),
+                        title: Text("Bills"),
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (ctx) => BillViewer()));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 appBar: AppBar(
-                  backgroundColor: Colors.white,
+                  centerTitle: true,
+                  elevation: 0.0,
                   title: AutoSizeText(
-                    name,
-                    style: TextStyle(fontSize: 30, color: Colors.black),
+                    "Home",
+                    style: TextStyle(
+                      fontSize: 25,
+                    ),
                   ),
                   actions: [
-                    Container(
-                      margin: EdgeInsets.only(bottom: 5),
-                      child: IconButton(
-                        alignment: Alignment.bottomRight,
-                        onPressed: () {
-                          fbAuth.signOut();
-                        },
-                        icon: Icon(
-                          Icons.logout,
-                          color: Colors.black,
-                        ),
+                    AddPhotoWidget(fbAuth: fbAuth),
+                    IconButton(
+                      onPressed: () {
+                        fbAuth.signOut();
+                      },
+                      icon: Icon(
+                        Icons.logout,
                       ),
                     ),
                   ],
@@ -171,7 +225,9 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                     return Center(
                                         child: CircularProgressIndicator());
                                   final event = snap.data as Event;
-                                  final result = event.snapshot.value as Map;
+                                  final result = event.snapshot.value == null
+                                      ? {}
+                                      : event.snapshot.value as Map;
                                   final today = DateTimeFormat.format(
                                       DateTime.now(),
                                       format: 'd');
@@ -189,6 +245,15 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                               ? null
                                               : result[e]['reportedData'][month]
                                                   [today];
+                                      final issues = result[e]['issues'] == null
+                                          ? {}
+                                          : result[e]['issues'] as Map;
+                                      Map createdIssue = {};
+                                      issues.forEach((key, value) {
+                                        if (value['status'] == 'created') {
+                                          createdIssue[key] = value;
+                                        }
+                                      });
                                       if (todaysData != null) {
                                         todaysData.keys.forEach((key) {
                                           bool recievedAllItems = true;
@@ -203,7 +268,8 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                         });
                                         // print(recievedAllItemsCount);
                                         percent = todaysData.length /
-                                            result[e]['studentCount'];
+                                            int.parse(
+                                                result[e]['studentCount']);
                                       }
                                       // print(percent);
                                       return InkWell(
@@ -232,13 +298,131 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                                           padding: EdgeInsets.only(top: 15),
                                           child: Column(
                                             children: [
-                                              AutoSizeText(
-                                                e,
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  fontWeight: FontWeight.bold,
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    InkWell(
+                                                      onTap: () {
+                                                        Navigator.of(context).push(
+                                                            MaterialPageRoute(
+                                                                builder: (ctx) =>
+                                                                    IssuesScreen(
+                                                                      issues:
+                                                                          createdIssue,
+                                                                      school: e,
+                                                                    )));
+                                                      },
+                                                      child: Container(
+                                                        width: 35,
+                                                        height: 35,
+                                                        child: Stack(
+                                                          children: [
+                                                            Icon(
+                                                              Icons.report,
+                                                              size: 30,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .primaryColor,
+                                                            ),
+                                                            if (createdIssue
+                                                                    .length >
+                                                                0)
+                                                              Positioned(
+                                                                top: -3.0,
+                                                                right: 0.0,
+                                                                child:
+                                                                    Container(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              4),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: Colors
+                                                                        .red,
+                                                                  ),
+                                                                  child:
+                                                                      AutoSizeText(
+                                                                    createdIssue
+                                                                        .length
+                                                                        .toString(),
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .white,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    AutoSizeText(
+                                                      e,
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        color: Theme.of(context)
+                                                            .primaryColorDark,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    InkWell(
+                                                      onTap: () {
+                                                        showDialog(
+                                                            context: context,
+                                                            builder: (ctx) {
+                                                              return AlertDialog(
+                                                                title: Text(
+                                                                  "Are you sure?",
+                                                                ),
+                                                                content: Text(
+                                                                    "You are going to remove this school!"),
+                                                                actions: [
+                                                                  TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.of(context)
+                                                                            .pop(true);
+                                                                      },
+                                                                      child: Text(
+                                                                          "Yes")),
+                                                                  TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.of(context)
+                                                                            .pop(false);
+                                                                      },
+                                                                      child: Text(
+                                                                          "No"))
+                                                                ],
+                                                              );
+                                                            }).then((value) {
+                                                          if (value != null &&
+                                                              value) {
+                                                            ref
+                                                                .child(
+                                                                    "schools/${e.toString()}")
+                                                                .remove();
+                                                          }
+                                                        });
+                                                      },
+                                                      child: Icon(Icons.delete,
+                                                          size: 30,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColor),
+                                                    )
+                                                  ],
                                                 ),
                                               ),
                                               SizedBox(
@@ -342,6 +526,6 @@ class _GovtHomeScreenState extends State<GovtHomeScreen> {
                           ),
               ),
             ),
-    );
+          );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:meal_survey/widgets/GovtForm.dart';
+import '../widgets/GovtForm.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meal_survey/widgets/StudentForm.dart';
+import '../widgets/StudentForm.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -141,12 +141,38 @@ class _SignInScreenState extends State<SignInScreen> {
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
                                 formKey.currentState!.save();
+                                try {
+                                  await FirebaseAuth.instance
+                                      .signInWithEmailAndPassword(
+                                          email: userData['email'].toString(),
+                                          password:
+                                              userData['password'].toString());
+                                } on FirebaseAuthException catch (error) {
+                                  String errorMessage;
+                                  print(error.code);
+                                  switch (error.code) {
+                                    case "invalid-email":
+                                      errorMessage =
+                                          "Your email address appears to be malformed.";
+                                      break;
+                                    case "wrong-password":
+                                      errorMessage = "Your password is wrong.";
+                                      break;
+                                    case "user-not-found":
+                                      errorMessage =
+                                          "User with this email doesn't exist.";
+                                      break;
 
-                                await FirebaseAuth.instance
-                                    .signInWithEmailAndPassword(
-                                        email: userData['email'].toString(),
-                                        password:
-                                            userData['password'].toString());
+                                    default:
+                                      errorMessage =
+                                          "Something went wrong please try again!";
+                                  }
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text(errorMessage),
+                                    backgroundColor: Colors.red,
+                                  ));
+                                }
                               }
                             },
                           ),

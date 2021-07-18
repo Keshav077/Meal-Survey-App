@@ -2,10 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_survey/screens/AdminScreen.dart';
-import 'package:meal_survey/screens/GovtHomeScreen.dart';
-import 'package:meal_survey/screens/StudentHomeScreen.dart';
-import 'package:meal_survey/screens/SignInScreen.dart';
+import '../screens/AdminScreen.dart';
+import '../screens/GovtHomeScreen.dart';
+import '../screens/StudentHomeScreen.dart';
+import '../screens/SignInScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Mid Day Meals',
         theme: ThemeData(
           primarySwatch: Colors.blueGrey,
           inputDecorationTheme: InputDecorationTheme(

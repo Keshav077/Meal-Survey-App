@@ -1,16 +1,17 @@
 import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:date_time_format/date_time_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:meal_survey/widgets/MenuButton.dart';
+import 'package:meal_survey/screens/MealChart.dart';
+import 'package:meal_survey/screens/ReportScreen.dart';
+import '../widgets/MenuButton.dart';
 import 'package:timer_builder/timer_builder.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:flutter/material.dart';
-import 'package:meal_survey/Services/studentService.dart';
+import '../Services/studentService.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({Key? key}) : super(key: key);
@@ -65,14 +66,76 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         date = DateTimeFormat.format(today, format: "d");
     final mqs = MediaQuery.of(context).size;
 
-    return Container(
-      color: Colors.white,
-      child: _isLoading
-          ? Center(
+    return _isLoading
+        ? Scaffold(
+            body: Center(
               child: CircularProgressIndicator(),
-            )
-          : SafeArea(
+            ),
+          )
+        : Container(
+            color: Theme.of(context).primaryColor,
+            child: SafeArea(
               child: Scaffold(
+                drawer: Drawer(
+                  child: ListView(
+                    children: [
+                      DrawerHeader(
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            "Mid Day Meal",
+                            style: TextStyle(color: Colors.white, fontSize: 28),
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor),
+                      ),
+                      ListTile(
+                        onTap: () {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (ctx) => MealChart()));
+                        },
+                        leading: Icon(Icons.fastfood),
+                        title: Text("Menu"),
+                      ),
+                      ListTile(
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (ctx) => ReportScreen(school: school)));
+                        },
+                        leading: Icon(Icons.error_outline),
+                        title: Text("Report"),
+                      ),
+                    ],
+                  ),
+                ),
+                appBar: AppBar(
+                  elevation: 0.0,
+                  centerTitle: true,
+                  brightness: Brightness.light,
+                  //backgroundColor: Colors.white,
+                  title: AutoSizeText(
+                    "Home",
+                    style: TextStyle(
+                      fontSize: 30,
+                    ),
+                  ),
+                  actions: [
+                    Container(
+                      margin: EdgeInsets.only(bottom: 5),
+                      child: IconButton(
+                        alignment: Alignment.bottomRight,
+                        onPressed: () {
+                          fbAuth.signOut();
+                        },
+                        icon: Icon(
+                          Icons.logout,
+                          //color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
                 body: status == 'created'
                     ? NotVerified(
                         fbAuth: fbAuth,
@@ -100,18 +163,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                 padding: EdgeInsets.only(top: 10),
                                 child: Column(
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {
-                                            fbAuth.signOut();
-                                          },
-                                          icon: Icon(Icons.logout),
-                                          color: Theme.of(context).primaryColor,
-                                        ),
-                                      ],
-                                    ),
                                     Container(
                                       width: 100,
                                       height: 100,
@@ -145,7 +196,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                         ),
                                         padding: EdgeInsets.all(10),
                                         margin: EdgeInsets.all(20),
-                                        height: mqs.height * 0.15,
+                                        height: mqs.height * 0.2,
                                         width: double.infinity,
                                         child: Column(
                                           mainAxisAlignment:
@@ -159,10 +210,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                                     DateTime.now(),
                                                     format: "H:i:s A"),
                                                 textAlign: TextAlign.center,
+                                                presetFontSizes: [60, 45, 30],
                                                 style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .primaryColorDark,
-                                                    fontSize: 60),
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark,
+                                                ),
                                               );
                                             }),
                                             Row(
@@ -174,8 +226,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                                                       DateTime.now(),
                                                       format: "l, d F Y"),
                                                   textAlign: TextAlign.center,
+                                                  presetFontSizes: [30, 24, 20],
                                                   style: TextStyle(
-                                                    fontSize: 30,
                                                     color: Theme.of(context)
                                                         .primaryColorDark,
                                                   ),
@@ -340,7 +392,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                           ),
               ),
             ),
-    );
+          );
   }
 }
 

@@ -40,32 +40,26 @@ class _SchoolMonthlyReportState extends State<SchoolMonthlyReport> {
     Size mqs = MediaQuery.of(context).size;
 
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).primaryColor,
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-                padding: const EdgeInsets.only(left: 8),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                icon: Icon(Icons.arrow_back_ios, color: Colors.black)),
-            backgroundColor: Colors.white,
             centerTitle: true,
+            elevation: 0.0,
             title: Column(
               children: [
                 AutoSizeText(
                   widget.schoolName,
                   style: TextStyle(
                     fontSize: 20,
-                    color: Colors.black,
+                    // color: Colors.black,
                   ),
                 ),
                 AutoSizeText(
                   widget.month,
                   style: TextStyle(
                     fontSize: 15,
-                    color: Colors.black54,
+                    // color: Colors.black54,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
